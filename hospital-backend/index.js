@@ -5,6 +5,7 @@ const cors = require('cors'); // Importa a biblioteca CORS
 
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
+app.use(express.json());
 
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
   host: process.env.DB_HOST,
@@ -26,16 +27,16 @@ const Paciente = require('./models/Paciente');
 
 // Criar paciente
 app.post('/pacientes', async (req, res) => {
-  console.log(req.body); // Verifique os dados recebidos
+  console.log('Dados recebidos:', req.body); // Verifique se os dados estão chegando aqui
   try {
     const paciente = await Paciente.create(req.body);
     res.status(201).json(paciente);
   } catch (error) {
-    console.error('Erro ao criar paciente:', error); // Exibe o erro no console
+    console.error('Erro ao criar paciente:', error);
     if (error.errors) {
       return res.status(400).json({ error: error.errors.map(e => e.message) });
     }
-    res.status(500).json({ error: 'Erro interno do servidor' }); // Para outros tipos de erro
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 
