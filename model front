@@ -1,0 +1,207 @@
+ara criar uma estrutura organizada para o frontend do projeto, vamos construir uma base em React que inclui pastas e arquivos essenciais para lidar com autenticação, navegação, requisições HTTP e organização de componentes. Abaixo, listo uma estrutura básica e explico cada parte.
+
+Estrutura Completa do Projeto
+plaintext
+Copiar código
+hospital-system-frontend/
+├── public/
+│   ├── index.html
+│   └── favicon.ico
+├── src/
+│   ├── assets/              # Arquivos de imagens, fontes e estilos globais
+│   │   ├── images/
+│   │   └── styles/
+│   │       └── global.css
+│   ├── components/          # Componentes reutilizáveis
+│   │   ├── Navbar.js
+│   │   └── ProtectedRoute.js
+│   ├── contexts/            # Contexto de autenticação e estado global
+│   │   └── AuthContext.js
+│   ├── pages/               # Páginas principais
+│   │   ├── Login.js
+│   │   ├── Dashboard.js
+│   │   ├── NotFound.js
+│   │   └── PatientList.js
+│   ├── routes/              # Arquivo de configuração de rotas
+│   │   └── AppRoutes.js
+│   ├── services/            # Configuração de API e funções auxiliares
+│   │   └── api.js
+│   ├── utils/               # Funções utilitárias
+│   │   └── formatDate.js
+│   ├── App.js               # Componente principal do aplicativo
+│   ├── index.js             # Ponto de entrada do React
+│   └── .env                 # Variáveis de ambiente do frontend
+├── .gitignore
+├── package.json
+└── README.md
+Descrição de Cada Pasta e Arquivo
+1. src/assets/
+Contém imagens, fontes e arquivos de estilo globais.
+
+styles/global.css: Estilos CSS globais aplicáveis em todo o projeto.
+2. src/components/
+Componentes reutilizáveis que serão utilizados em várias páginas.
+
+Navbar.js: Componente de navegação, exibindo links para as principais páginas do sistema.
+ProtectedRoute.js: Componente de rota protegida que verifica se o usuário está autenticado antes de renderizar certas páginas.
+3. src/contexts/
+O contexto de autenticação fornece acesso ao estado de login em toda a aplicação.
+
+AuthContext.js: Configuração do contexto de autenticação, incluindo o estado do usuário e métodos para login e logout.
+4. src/pages/
+Páginas principais do sistema, cada uma representando uma rota principal.
+
+Login.js: Página de login do usuário.
+Dashboard.js: Painel principal exibido após o login.
+NotFound.js: Página 404 para rotas inexistentes.
+PatientList.js: Exemplo de página que lista os pacientes, protegida pelo ProtectedRoute.
+5. src/routes/
+Configuração das rotas do aplicativo, definindo a navegação entre páginas.
+
+AppRoutes.js: Arquivo que define as rotas e organiza o uso do ProtectedRoute.
+6. src/services/
+Contém o arquivo de configuração da API e qualquer função de manipulação de dados.
+
+api.js: Configuração do Axios com base na URL do backend para facilitar as requisições.
+7. src/utils/
+Pasta para funções utilitárias que ajudam na formatação e manipulação de dados.
+
+formatDate.js: Exemplo de função para formatação de datas.
+8. src/App.js
+Componente principal do React que renderiza as rotas e o layout principal da aplicação.
+
+9. src/index.js
+Ponto de entrada do React, onde o aplicativo é inicializado.
+
+Implementação Básica dos Arquivos
+src/services/api.js
+javascript
+Copiar código
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL, // Carrega a URL do backend do .env
+});
+
+export default api;
+src/contexts/AuthContext.js
+javascript
+Copiar código
+import React, { createContext, useState, useEffect } from 'react';
+import api from '../services/api';
+
+export const AuthContext = createContext();
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      api.defaults.headers.Authorization = `Bearer ${storedUser.token}`;
+    }
+  }, []);
+
+  const login = async (email, password) => {
+    const response = await api.post('/api/auth/login', { email, password });
+    const loggedUser = response.data;
+    localStorage.setItem('user', JSON.stringify(loggedUser));
+    api.defaults.headers.Authorization = `Bearer ${loggedUser.token}`;
+    setUser(loggedUser);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+src/App.js
+javascript
+Copiar código
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import AppRoutes from './routes/AppRoutes';
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </AuthProvider>
+  );
+};
+
+export default App;
+src/routes/AppRoutes.js
+javascript
+Copiar código
+import React, { useContext } from 'react';
+import { Route, Routes, Navigate } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext';
+import Login from '../pages/Login';
+import Dashboard from '../pages/Dashboard';
+import PatientList from '../pages/PatientList';
+import NotFound from '../pages/NotFound';
+
+const ProtectedRoute = ({ children }) => {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/login" />;
+};
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/login" element={<Login />} />
+    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+    <Route path="/patients" element={<ProtectedRoute><PatientList /></ProtectedRoute>} />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
+export default AppRoutes;
+src/pages/Login.js
+javascript
+Copiar código
+import React, { useContext, useState } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
+
+const Login = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login } = useContext(AuthContext);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await login(email, password);
+      console.log('Login bem-sucedido');
+    } catch (error) {
+      console.error('Erro ao fazer login', error);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button type="submit">Entrar</button>
+    </form>
+  );
+};
+
+export default Login;
+Finalizando
+Essa estrutura inicial fornece um sistema básico de login com rotas protegidas, estado de autenticação, e uma configuração que permite expansões. Para rodar o frontend, utilize:
+
+bash
+Copiar código
+npm start
+Se precisar de mais ajustes ou funcionalidades adicionais, estou à disposição para ajudar!
