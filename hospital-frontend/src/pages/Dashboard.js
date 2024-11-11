@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import { Typography, Box, Button, Grid, Paper, Container, Select, MenuItem, Tooltip, AppBar, Toolbar, IconButton } from '@mui/material';
+import { Typography, Box, Button, Grid, Paper, Container, Select, MenuItem, Tooltip, AppBar, Toolbar, IconButton, TextField, Grid2 } from '@mui/material';
 import { BarChart, LineChart, PieChart, Pie, Legend, Cell, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ResponsiveContainer, Bar, Line } from 'recharts';
 import GroupIcon from '@mui/icons-material/Group';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -8,14 +8,19 @@ import TaskIcon from '@mui/icons-material/Task';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MenuIcon from '@mui/icons-material/Menu';
 import Sidebar from '../components/Sidebar';
+import { DatePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import back from '../assets/images/back.jpg';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
   const [timeFrame, setTimeFrame] = useState('lastMonth');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const notificationsCount = 7;
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
-  // Dummy data for demonstration purposes
   const activityData = [
     { name: 'Seg', newUsers: 5, reports: 8 },
     { name: 'Ter', newUsers: 8, reports: 12 },
@@ -56,161 +61,237 @@ const Dashboard = () => {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
-    <Container maxWidth="lg" sx={{ paddingTop: 4, paddingBottom: 4 }}>
+    <Grid2
+      container
 
-      <AppBar position="fixed">
-        <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={toggleSidebar} aria-label="menu">
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Dashboard
+      sx={{
+        minHeight: '100vh',
+        width: '100%',
+        backgroundImage: `url(${back})`,
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+
+
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          flexGrow: 1, // Permite que o container cresça dentro do Grid
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '120px 60px 60px 60px'
+
+        }}
+      >
+
+        <AppBar position="fixed">
+          <Toolbar>
+            <IconButton edge="start" color="inherit" onClick={toggleSidebar} aria-label="menu">
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+              Dashboard
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
+        {/* Sidebar */}
+        <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} user={user} notificationsCount={notificationsCount} />
+
+        {/* Welcome Message */}
+        <Box textAlign="center" mb={4}>
+          <Typography variant="h4">Bem-vindo(a), {user ? user.nome : 'Usuário'}!</Typography>
+          <Typography variant="subtitle1" color="textSecondary">
+            Seu painel administrativo com métricas e atalhos importantes.
           </Typography>
-        </Toolbar>
-      </AppBar>
+        </Box>
 
-      {/* Sidebar */}
-      <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} user={user} notificationsCount={notificationsCount} />
-
-
-
-      {/* Welcome Message */}
-      <Box textAlign="center" mb={4}>
-        <Typography variant="h4">Bem-vindo(a), {user ? user.nome : 'Usuário'}!</Typography>
-        <Typography variant="subtitle1" color="textSecondary">
-          Seu painel administrativo com métricas e atalhos importantes.
-        </Typography>
-      </Box>
-
-      {/* Time Frame Filter */}
-      <Box sx={{ marginBottom: 2 }}>
-        <Typography variant="h6">Selecionar Período</Typography>
-        <Select value={timeFrame} onChange={handleTimeFrameChange} displayEmpty>
-          <MenuItem value="lastWeek">Última Semana</MenuItem>
-          <MenuItem value="lastMonth">Último Mês</MenuItem>
-          <MenuItem value="lastQuarter">Último Trimestre</MenuItem>
-        </Select>
-      </Box>
-
-      {/* Patient Metrics Overview */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography variant="h5">Resumo de Pacientes</Typography>
-        <Grid container spacing={3}>
-          {Object.entries(patientMetrics).map(([key, value]) => (
-            <Grid key={key} item xs={12} sm={6} md={4}>
-              <Paper elevation={3} sx={{ padding: 3, textAlign: 'center', backgroundColor: '#e8f5e9' }}>
-                <Typography variant="h6">{key.replace(/([A-Z])/g, ' $1').toUpperCase()}</Typography>
-                <Typography variant="h4" color="primary">
-                  {typeof value === 'number' ? value : `${value}%`}
-                </Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-
-      {/* Age Distribution Pie Chart */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography variant="h5">Distribuição de Pacientes por Idade</Typography>
-        <Paper elevation={3} sx={{ padding: 2 }}>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie data={ageDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                {ageDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3f51b5' : '#f50057'} />
-                ))}
-              </Pie>
-              <RechartsTooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </Paper>
-      </Box>
-
-      {/* Activity Summary */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography variant="h5">Resumo das Atividades</Typography>
-        <Grid container spacing={3}>
-          {[
-            { icon: <GroupIcon />, title: "Usuários Ativos", value: 150, info: "Última atualização há 5 minutos" },
-            { icon: <AccessTimeIcon />, title: "Novos Cadastros", value: 30, info: "Nesta semana" },
-            { icon: <ShowChartIcon />, title: "Relatórios Gerados", value: 45, info: "No último mês" }
-          ].map(({ icon, title, value, info }, index) => (
-            <Grid item xs={12} sm={4} key={index}>
-              <Paper elevation={3} sx={{ padding: 3, textAlign: 'center' }}>
-                <Tooltip title={info}>{icon}</Tooltip>
-                <Typography variant="h6">{title}</Typography>
-                <Typography variant="h4" color="primary">{value}</Typography>
-                <Typography variant="body2" color="textSecondary">{info}</Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-
-      {/* Activity Charts */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography variant="h5">Gráficos de Atividade</Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Atividade Diária</Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={activityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <RechartsTooltip />
-                  <Bar dataKey="newUsers" fill="#3f51b5" name="Novos Usuários" />
-                  <Bar dataKey="reports" fill="#f50057" name="Relatórios" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ padding: 2 }}>
-              <Typography variant="h6">Tendência de Desempenho</Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <RechartsTooltip />
-                  <Line type="monotone" dataKey="performance" stroke="#3f51b5" name="Desempenho" />
-                </LineChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
-
-      {/* Notifications and Pending Tasks */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography variant="h5">Notificações</Typography>
-        <Paper elevation={3} sx={{ padding: 2 }}>
-          <Typography variant="body1" color="error">🚨 Alta demanda de atendimento hoje!</Typography>
-          <Typography variant="body1" color="warning">🛑 Revisar pacientes com tratamentos prolongados.</Typography>
-          <Typography variant="body1">✅ Novos pacientes cadastrados: 2</Typography>
-          <Typography variant="body1">🔄 Atualização de relatórios concluída.</Typography>
-        </Paper>
-      </Box>
-
-      {/* Pending Tasks Section */}
-      <Box sx={{ marginTop: 4 }}>
-        <Typography variant="h5">Tarefas Pendentes</Typography>
-        <Paper elevation={3} sx={{ padding: 2 }}>
-          {["Revisar agendamentos", "Confirmar disponibilidade de equipe", "Atualizar sistema"].map((task, index) => (
-            <Box key={index} sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
-              <TaskIcon color="primary" sx={{ marginRight: 1 }} />
-              <Typography variant="body1">{task}</Typography>
-              <Button variant="contained" color="primary" sx={{ marginLeft: 'auto' }}>
-                Concluir
-              </Button>
+        {/* Time Frame Filter and Custom Date Range Picker in a Row */}
+        <Paper elevation={4} sx={{ padding: 3, marginBottom: 4,  }}>
+          <Box sx={{ display: 'flex', gap: 4 }}>
+            {/* Time Frame Filter */}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6">Selecionar Período</Typography>
+              <Select
+                value={timeFrame}
+                onChange={handleTimeFrameChange}
+                displayEmpty
+                fullWidth
+              >
+                <MenuItem value="lastWeek">Última Semana</MenuItem>
+                <MenuItem value="lastMonth">Último Mês</MenuItem>
+                <MenuItem value="lastQuarter">Último Trimestre</MenuItem>
+              </Select>
             </Box>
-          ))}
+
+            {/* Custom Date Range Picker */}
+            <Box sx={{ flex: 2 }}>
+              <Typography variant="h6">Selecionar Intervalo de Datas</Typography>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <DatePicker
+                    label="Data Inicial"
+                    value={startDate}
+                    onChange={(newValue) => setStartDate(newValue)}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                  <DatePicker
+                    label="Data Final"
+                    value={endDate}
+                    onChange={(newValue) => setEndDate(newValue)}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                </Box>
+              </LocalizationProvider>
+            </Box>
+          </Box>
         </Paper>
-      </Box>
-    </Container>
+
+
+        {/* Date Range Picker Using Two DatePickers */}
+
+
+        {/* Restante do Código: Metrics, Charts, Notifications, etc. */}
+        {/* Patient Metrics Overview */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5">Resumo de Pacientes</Typography>
+          <Grid container spacing={3}>
+            {Object.entries(patientMetrics).map(([key, value]) => (
+              <Grid key={key} item xs={12} sm={6} md={4}>
+                <Paper elevation={3} sx={{ padding: 3, textAlign: 'center', backgroundColor: '#e8f5e9' }}>
+                  <Typography variant="h6">{key.replace(/([A-Z])/g, ' $1').toUpperCase()}</Typography>
+                  <Typography variant="h4" color="primary">
+                    {typeof value === 'number' ? value : `${value}%`}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+        {/* Patient Metrics Overview */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5">Resumo de Pacientes</Typography>
+          <Grid container spacing={3}>
+            {Object.entries(patientMetrics).map(([key, value]) => (
+              <Grid key={key} item xs={12} sm={6} md={4}>
+                <Paper elevation={3} sx={{ padding: 3, textAlign: 'center', backgroundColor: '#e8f5e9' }}>
+                  <Typography variant="h6">{key.replace(/([A-Z])/g, ' $1').toUpperCase()}</Typography>
+                  <Typography variant="h4" color="primary">
+                    {typeof value === 'number' ? value : `${value}%`}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Age Distribution Pie Chart */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5">Distribuição de Pacientes por Idade</Typography>
+          <Paper elevation={3} sx={{ padding: 2 }}>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie data={ageDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                  {ageDistribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3f51b5' : '#f50057'} />
+                  ))}
+                </Pie>
+                <RechartsTooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Paper>
+        </Box>
+
+        {/* Activity Summary */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5">Resumo das Atividades</Typography>
+          <Grid container spacing={3}>
+            {[
+              { icon: <GroupIcon />, title: "Usuários Ativos", value: 150, info: "Última atualização há 5 minutos" },
+              { icon: <AccessTimeIcon />, title: "Novos Cadastros", value: 30, info: "Nesta semana" },
+              { icon: <ShowChartIcon />, title: "Relatórios Gerados", value: 45, info: "No último mês" }
+            ].map(({ icon, title, value, info }, index) => (
+              <Grid item xs={12} sm={4} key={index}>
+                <Paper elevation={3} sx={{ padding: 3, textAlign: 'center' }}>
+                  <Tooltip title={info}>{icon}</Tooltip>
+                  <Typography variant="h6">{title}</Typography>
+                  <Typography variant="h4" color="primary">{value}</Typography>
+                  <Typography variant="body2" color="textSecondary">{info}</Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Activity Charts */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5">Gráficos de Atividade</Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Paper elevation={3} sx={{ padding: 2 }}>
+                <Typography variant="h6">Atividade Diária</Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={activityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Bar dataKey="newUsers" fill="#3f51b5" name="Novos Usuários" />
+                    <Bar dataKey="reports" fill="#f50057" name="Relatórios" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper elevation={3} sx={{ padding: 2 }}>
+                <Typography variant="h6">Tendência de Desempenho</Typography>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={performanceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <RechartsTooltip />
+                    <Line type="monotone" dataKey="performance" stroke="#3f51b5" name="Desempenho" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* Notifications and Pending Tasks */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5">Notificações</Typography>
+          <Paper elevation={3} sx={{ padding: 2 }}>
+            <Typography variant="body1" color="error">🚨 Alta demanda de atendimento hoje!</Typography>
+            <Typography variant="body1" color="warning">🛑 Revisar pacientes com tratamentos prolongados.</Typography>
+            <Typography variant="body1">✅ Novos pacientes cadastrados: 2</Typography>
+            <Typography variant="body1">🔄 Atualização de relatórios concluída.</Typography>
+          </Paper>
+        </Box>
+
+        {/* Pending Tasks Section */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5">Tarefas Pendentes</Typography>
+          <Paper elevation={3} sx={{ padding: 2 }}>
+            {["Revisar agendamentos", "Confirmar disponibilidade de equipe", "Atualizar sistema"].map((task, index) => (
+              <Box key={index} sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
+                <TaskIcon color="primary" sx={{ marginRight: 1 }} />
+                <Typography variant="body1">{task}</Typography>
+                <Button variant="contained" color="primary" sx={{ marginLeft: 'auto' }}>
+                  Concluir
+                </Button>
+              </Box>
+            ))}
+          </Paper>
+        </Box>
+      </Container>
+    </Grid2>
   );
 };
 

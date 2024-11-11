@@ -55,7 +55,7 @@ const Login = () => {
       <Container
         maxWidth="xs"
         sx={{
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backgroundColor: 'rgba(255, 255, 255, 1)',
           padding: 4,
           borderRadius: 2,
           boxShadow: 3,

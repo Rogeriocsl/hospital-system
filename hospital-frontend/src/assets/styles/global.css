@@ -3,8 +3,10 @@ html, body {
     padding: 0;
     height: 100%;
     width: 100%;
+    background-color: transparent; /* Garante que não haja fundo */
 }
 
 #root {
-    height: 100%; /* Garante que o root ocupe 100% da altura */
+    height: 100%;
+    background-color: transparent; /* Garante que não haja fundo */
 }
