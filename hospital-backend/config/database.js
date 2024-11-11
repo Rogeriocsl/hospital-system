@@ -8,7 +8,7 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST, // localhost
     dialect: 'mysql', // Especifica o MySQL
-    port: process.env.DB_PORT || 3312, // Porta padrão ou porta definida no .env
+    port: process.env.DB_PORT || 3306, // Porta padrão ou porta definida no .env
     logging: false, // Desabilita logs de SQL para mais clareza, opcional
   }
 );

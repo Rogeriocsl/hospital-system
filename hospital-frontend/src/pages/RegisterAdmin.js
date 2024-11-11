@@ -3,19 +3,15 @@ import { TextField, Button, Typography, Box, Paper, Alert } from '@mui/material'
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
-const Register = () => {
+const RegisterAdmin = () => {
   const [nome, setNome] = useState('');
   const [sobrenome, setSobrenome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [rg, setRg] = useState('');
-  const [crm, setCrm] = useState('');
-  const [cargo, setCargo] = useState('');
-  const [setor, setSetor] = useState('');
-  const [especialidade, setEspecialidade] = useState('');
+  const [nivelAcesso, setNivelAcesso] = useState('');
+  const [departamento, setDepartamento] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -23,31 +19,42 @@ const Register = () => {
     e.preventDefault();
     setError(null);
     
+    // Verifique se os campos obrigatórios estão preenchidos
+    if (!nome || !sobrenome || !email || !senha || !telefone || !nivelAcesso || !departamento) {
+      setError('Todos os campos obrigatórios devem ser preenchidos.');
+      return;
+    }
+  
+    // Verificação se as senhas coincidem
     if (senha !== confirmarSenha) {
       setError('As senhas não coincidem.');
       return;
     }
-
+  
+    // Validar formato de email e outros dados conforme necessário
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Padrão de email
+    if (!emailPattern.test(email)) {
+      setError('Por favor, insira um email válido.');
+      return;
+    }
+  
     try {
-      await api.post(`${process.env.REACT_APP_API_URL}/auth/register`, {
+      await api.post(`${process.env.REACT_APP_API_URL}/auth/register-admin`, {
         nome,
         sobrenome,
         email,
         senha,
         telefone,
-        cpf,
-        rg,
-        crm,
-        cargo,
-        setor,
-        especialidade,
+        nivelAcesso,
+        departamento,
       });
       navigate('/login'); // Redireciona para a página de login
     } catch (err) {
-      console.error('Erro ao registrar:', err);
+      console.error('Erro ao registrar administrador:', err.response?.data?.message || err.message);
       setError(err.response?.data?.message || 'Erro no registro. Tente novamente.');
     }
   };
+  
 
   return (
     <Box
@@ -59,7 +66,7 @@ const Register = () => {
     >
       <Paper elevation={3} sx={{ padding: 4, maxWidth: 400, width: '100%', textAlign: 'center' }}>
         <Typography variant="h5" gutterBottom>
-          Registro de Usuário
+          Registro de Administrador
         </Typography>
         <form onSubmit={handleRegister}>
           <TextField
@@ -120,56 +127,22 @@ const Register = () => {
             required
           />
           <TextField
-            label="CPF"
+            label="Nível de Acesso"
             variant="outlined"
             fullWidth
             margin="normal"
-            value={cpf}
-            onChange={(e) => setCpf(e.target.value)}
+            value={nivelAcesso}
+            onChange={(e) => setNivelAcesso(e.target.value)}
             required
           />
           <TextField
-            label="RG"
+            label="Departamento"
             variant="outlined"
             fullWidth
             margin="normal"
-            value={rg}
-            onChange={(e) => setRg(e.target.value)}
+            value={departamento}
+            onChange={(e) => setDepartamento(e.target.value)}
             required
-          />
-          <TextField
-            label="CRM"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={crm}
-            onChange={(e) => setCrm(e.target.value)}
-          />
-          <TextField
-            label="Cargo"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={cargo}
-            onChange={(e) => setCargo(e.target.value)}
-            required
-          />
-          <TextField
-            label="Setor (ex: Centro Cirúrgico)"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={setor}
-            onChange={(e) => setSetor(e.target.value)}
-            required
-          />
-          <TextField
-            label="Especialidade"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={especialidade}
-            onChange={(e) => setEspecialidade(e.target.value)}
           />
           <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
             Registrar
@@ -185,4 +158,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default RegisterAdmin;
