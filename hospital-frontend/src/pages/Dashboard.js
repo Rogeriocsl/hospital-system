@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import { Typography, Box, Button, Grid, Paper, Container, Select, MenuItem, Tooltip, AppBar, Toolbar, IconButton, TextField, Grid2 } from '@mui/material';
+import { Typography, Box, Button, Grid, Paper, Container, Select, MenuItem, Tooltip, AppBar, Toolbar, IconButton, TextField, Grid2, Card, CardContent, CardMedia } from '@mui/material';
 import { BarChart, LineChart, PieChart, Pie, Legend, Cell, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, ResponsiveContainer, Bar, Line } from 'recharts';
 import GroupIcon from '@mui/icons-material/Group';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -11,6 +11,10 @@ import Sidebar from '../components/Sidebar';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import PersonIcon from '@mui/icons-material/Person';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TimerIcon from '@mui/icons-material/Timer';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import back from '../assets/images/back.jpg';
 
 const Dashboard = () => {
@@ -20,6 +24,9 @@ const Dashboard = () => {
   const notificationsCount = 7;
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+
+
+
 
   const activityData = [
     { name: 'Seg', newUsers: 5, reports: 8 },
@@ -41,15 +48,33 @@ const Dashboard = () => {
   ];
 
   const patientMetrics = {
-    totalPatients: 300,
-    activePatients: 150,
-    newPatients: 20,
-    patientsInTreatment: 120,
-    treatmentCompletionRate: 85,
-    averageSatisfactionRating: 4.5,
-    attendanceRate: 90,
-    averageWaitingTime: 15,
+    totalPatients: { label: "Total de Pacientes", value: 300 },
+    activePatients: { label: "Pacientes Ativos", value: 150 },
+    newPatients: { label: "Novos Pacientes", value: 20 },
+    patientsInTreatment: { label: "Pacientes em Tratamento", value: 120 },
+    attendanceRate: { label: "Taxa de Atendimento", value: "90%" },
+    averageWaitingTime: { label: "Tempo Médio de Espera", value: "15 minutos" },
+    dischargesToday: { label: "Altas Hoje", value: 10 },
+    patientSatisfaction: { label: "Satisfação do Paciente", value: "85%" },
   };
+
+  const colorMapping = {
+    totalPatients: 'linear-gradient(to bottom, #0288d1, #01579b)', // azul escuro
+    activePatients: 'linear-gradient(to bottom, #388e3c, #1b5e20)', // verde escuro
+    newPatients: 'linear-gradient(to bottom, #4caf50, #2e7d32)', // verde mais escuro
+    patientsInTreatment: 'linear-gradient(to bottom, #0277bd, #004c8c)', // azul profundo
+    attendanceRate: 'linear-gradient(to bottom, #fbc02d, #f57f17)', // amarelo escuro
+    averageWaitingTime: 'linear-gradient(to bottom, #757575, #424242)', // cinza escuro
+    dischargesToday: 'linear-gradient(to bottom, #7b1fa2, #4a0072)', // roxo escuro
+    patientSatisfaction: 'linear-gradient(to bottom, #2e7d32, #1b5e20)', // verde escuro (para satisfação)
+  };
+
+  const activityDatas = [
+    { icon: <ShowChartIcon sx={{ color: '#673ab7', fontSize: 40 }} />, title: "Relatórios Gerados", value: 45, info: "No último mês" },
+    { icon: <TimerIcon sx={{ color: '#009688', fontSize: 40 }} />, title: "Tempo Médio no Sistema", value: "15 min", info: "Tempo médio diário" },
+    { icon: <ErrorOutlineIcon sx={{ color: '#f44336', fontSize: 40 }} />, title: "Problemas Reportados", value: 12, info: "Últimos 7 dias" },
+  ];
+
 
   const ageDistribution = [
     { name: 'Pediátricos', value: 100 },
@@ -110,154 +135,234 @@ const Dashboard = () => {
           </Typography>
         </Box>
 
-        {/* Time Frame Filter and Custom Date Range Picker in a Row */}
-        <Paper elevation={4} sx={{ padding: 3, marginBottom: 4,  }}>
-          <Box sx={{ display: 'flex', gap: 4 }}>
-            {/* Time Frame Filter */}
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h6">Selecionar Período</Typography>
+        <Paper elevation={4} sx={{ display: 'inline-flex', padding: 2, alignSelf: 'flex-end', borderRadius: 3, }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+
+            <Box>
+              <Typography sx={{ fontWeight: 'bold' }} variant="h6">Selecionar Período</Typography>
               <Select
+                sx={{ fontWeight: 600 }}
                 value={timeFrame}
                 onChange={handleTimeFrameChange}
                 displayEmpty
                 fullWidth
               >
-                <MenuItem value="lastWeek">Última Semana</MenuItem>
-                <MenuItem value="lastMonth">Último Mês</MenuItem>
-                <MenuItem value="lastQuarter">Último Trimestre</MenuItem>
+                <MenuItem sx={{ fontWeight: 600 }} value="lastWeek">Última Semana</MenuItem>
+                <MenuItem sx={{ fontWeight: 600 }} value="lastMonth">Último Mês</MenuItem>
+                <MenuItem sx={{ fontWeight: 600 }} value="lastQuarter">Último Trimestre</MenuItem>
               </Select>
             </Box>
 
-            {/* Custom Date Range Picker */}
-            <Box sx={{ flex: 2 }}>
-              <Typography variant="h6">Selecionar Intervalo de Datas</Typography>
+
+            <Box>
+              <Typography sx={{ fontWeight: 'bold' }} variant="h6">Selecionar Intervalo de Datas</Typography>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
                   <DatePicker
+                    sx={{ fontWeight: 600 }}
                     label="Data Inicial"
                     value={startDate}
                     onChange={(newValue) => setStartDate(newValue)}
-                    renderInput={(params) => <TextField {...params} fullWidth />}
+                    inputFormat="DD/MM/YYYY" // Formato de data brasileiro
+                    renderInput={(params) => (
+                      <TextField sx={{ fontWeight: 600 }} {...params} /> // Ajusta a largura
+                    )}
                   />
                   <DatePicker
+                    sx={{ fontWeight: 600 }}
                     label="Data Final"
                     value={endDate}
                     onChange={(newValue) => setEndDate(newValue)}
-                    renderInput={(params) => <TextField {...params} fullWidth />}
+                    inputFormat="DD/MM/YYYY"
+                    renderInput={(params) => (
+                      <TextField sx={{ fontWeight: 600 }} {...params} /> // Ajusta a largura
+                    )}
                   />
                 </Box>
               </LocalizationProvider>
             </Box>
           </Box>
+
         </Paper>
 
-
-        {/* Date Range Picker Using Two DatePickers */}
-
-
-        {/* Restante do Código: Metrics, Charts, Notifications, etc. */}
-        {/* Patient Metrics Overview */}
         <Box sx={{ marginTop: 4 }}>
-          <Typography variant="h5">Resumo de Pacientes</Typography>
+          <Typography sx={{ fontWeight: 600, textAlign: 'center', marginBottom: 2 }} variant="h2">
+            Resumo de Pacientes
+          </Typography>
+          <Grid container spacing={3} justifyContent="center">
+            {Object.entries(patientMetrics).map(([key, metric]) => (
+              <Grid item xs={12} sm={6} md={3} key={key}>
+                <Card
+                  elevation={3}
+                  sx={{
+                    textAlign: 'center',
+                    background: colorMapping[key] || 'linear-gradient(to bottom, #e0e0e0, #bdbdbd)', // Cor padrão caso a métrica não tenha cor definida
+                    borderRadius: 4,
+                    color: 'white',
+                    padding: 2,
+                    transition: 'transform 0.1s',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    },
+                  }}
+                >
+                  <CardContent>
+                    {/* Ícone de paciente */}
+                    <PersonIcon sx={{ fontSize: 40, marginBottom: 1, opacity: 0.7 }} />
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                      {metric.value}
+                    </Typography>
+                    <Typography variant="body1">
+                      {metric.label}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+
+
+        {/* Resumo das Atividades */}
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5" sx={{ fontWeight: 600, textAlign: 'center', marginBottom: 3 }}>
+            Resumo das Atividades
+          </Typography>
           <Grid container spacing={3}>
-            {Object.entries(patientMetrics).map(([key, value]) => (
-              <Grid key={key} item xs={12} sm={6} md={4}>
-                <Paper elevation={3} sx={{ padding: 3, textAlign: 'center', backgroundColor: '#e8f5e9' }}>
-                  <Typography variant="h6">{key.replace(/([A-Z])/g, ' $1').toUpperCase()}</Typography>
-                  <Typography variant="h4" color="primary">
-                    {typeof value === 'number' ? value : `${value}%`}
+            {activityDatas.map(({ icon, title, value, info }, index) => (
+              <Grid item xs={12} sm={6} md={4} key={index}>
+                <Paper
+                  elevation={4}
+                  sx={{
+                    padding: 3,
+                    textAlign: 'center',
+                    background: 'linear-gradient(to bottom, #f5f7fa, #c3cfe2)',
+                    borderRadius: 2,
+                    transition: 'transform 0.3s',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    },
+                  }}
+                >
+                  <Tooltip title={info} arrow>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 1 }}>
+                      {icon}
+                    </Box>
+                  </Tooltip>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    {title}
+                  </Typography>
+                  <Typography variant="h4" color="primary" sx={{ fontWeight: 700 }}>
+                    {value}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ opacity: 0.8 }}>
+                    {info}
                   </Typography>
                 </Paper>
               </Grid>
             ))}
           </Grid>
         </Box>
-        {/* Patient Metrics Overview */}
-        <Box sx={{ marginTop: 4 }}>
-          <Typography variant="h5">Resumo de Pacientes</Typography>
-          <Grid container spacing={3}>
-            {Object.entries(patientMetrics).map(([key, value]) => (
-              <Grid key={key} item xs={12} sm={6} md={4}>
-                <Paper elevation={3} sx={{ padding: 3, textAlign: 'center', backgroundColor: '#e8f5e9' }}>
-                  <Typography variant="h6">{key.replace(/([A-Z])/g, ' $1').toUpperCase()}</Typography>
-                  <Typography variant="h4" color="primary">
-                    {typeof value === 'number' ? value : `${value}%`}
-                  </Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
 
-        {/* Age Distribution Pie Chart */}
+        {/* Resumo de Atividades */}
         <Box sx={{ marginTop: 4 }}>
-          <Typography variant="h5">Distribuição de Pacientes por Idade</Typography>
-          <Paper elevation={3} sx={{ padding: 2 }}>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={ageDistribution} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                  {ageDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#3f51b5' : '#f50057'} />
-                  ))}
-                </Pie>
-                <RechartsTooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Box>
+          <Typography variant="h5" sx={{ fontWeight: 600, textAlign: 'center', marginBottom: 3 }}>
+            Resumo de Atividades
+          </Typography>
+          <Grid container spacing={3} justifyContent="center">
 
-        {/* Activity Summary */}
-        <Box sx={{ marginTop: 4 }}>
-          <Typography variant="h5">Resumo das Atividades</Typography>
-          <Grid container spacing={3}>
-            {[
-              { icon: <GroupIcon />, title: "Usuários Ativos", value: 150, info: "Última atualização há 5 minutos" },
-              { icon: <AccessTimeIcon />, title: "Novos Cadastros", value: 30, info: "Nesta semana" },
-              { icon: <ShowChartIcon />, title: "Relatórios Gerados", value: 45, info: "No último mês" }
-            ].map(({ icon, title, value, info }, index) => (
-              <Grid item xs={12} sm={4} key={index}>
-                <Paper elevation={3} sx={{ padding: 3, textAlign: 'center' }}>
-                  <Tooltip title={info}>{icon}</Tooltip>
-                  <Typography variant="h6">{title}</Typography>
-                  <Typography variant="h4" color="primary">{value}</Typography>
-                  <Typography variant="body2" color="textSecondary">{info}</Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* Activity Charts */}
-        <Box sx={{ marginTop: 4 }}>
-          <Typography variant="h5">Gráficos de Atividade</Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Paper elevation={3} sx={{ padding: 2 }}>
-                <Typography variant="h6">Atividade Diária</Typography>
-                <ResponsiveContainer width="100%" height={300}>
+            {/* Gráfico de Atividade Diária */}
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={4}
+                sx={{
+                  padding: 2,
+                  borderRadius: 3,
+                  background: 'linear-gradient(to bottom, #0288d1, #004c8c)',
+                  color: 'white',
+                  textAlign: 'center',
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Atividade Diária
+                </Typography>
+                <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={activityData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" tick={{ fill: 'white' }} />
+                    <YAxis tick={{ fill: 'white' }} />
                     <RechartsTooltip />
-                    <Bar dataKey="newUsers" fill="#3f51b5" name="Novos Usuários" />
-                    <Bar dataKey="reports" fill="#f50057" name="Relatórios" />
+                    <Bar dataKey="newUsers" fill="#80deea" name="Novos Usuários" />
+                    <Bar dataKey="reports" fill="#ff8a80" name="Relatórios" />
                   </BarChart>
                 </ResponsiveContainer>
               </Paper>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Paper elevation={3} sx={{ padding: 2 }}>
-                <Typography variant="h6">Tendência de Desempenho</Typography>
-                <ResponsiveContainer width="100%" height={300}>
+
+            {/* Gráfico de Tendência de Desempenho */}
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={4}
+                sx={{
+                  padding: 2,
+                  borderRadius: 3,
+                  background: 'linear-gradient(to bottom, #388e3c, #1b5e20)',
+                  color: 'white',
+                  textAlign: 'center',
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Tendência de Desempenho
+                </Typography>
+                <ResponsiveContainer width="100%" height={250}>
                   <LineChart data={performanceData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" tick={{ fill: 'white' }} />
+                    <YAxis tick={{ fill: 'white' }} />
                     <RechartsTooltip />
-                    <Line type="monotone" dataKey="performance" stroke="#3f51b5" name="Desempenho" />
+                    <Line type="monotone" dataKey="performance" stroke="#a5d6a7" name="Desempenho" />
                   </LineChart>
+                </ResponsiveContainer>
+              </Paper>
+            </Grid>
+
+            {/* Gráfico de Distribuição de Pacientes por Idade */}
+            <Grid item xs={12} md={4}>
+              <Paper
+                elevation={4}
+                sx={{
+                  padding: 2,
+                  borderRadius: 3,
+                  background: 'linear-gradient(to bottom, #7b1fa2, #4a0072)',
+                  color: 'white',
+                  textAlign: 'center',
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Distribuição de Pacientes por Idade
+                </Typography>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={ageDistribution}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label
+                    >
+                      {ageDistribution.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index % 2 === 0 ? '#ce93d8' : '#ab47bc'}
+                        />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <Legend />
+                  </PieChart>
                 </ResponsiveContainer>
               </Paper>
             </Grid>
