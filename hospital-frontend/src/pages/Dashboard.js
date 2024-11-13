@@ -82,8 +82,25 @@ const Dashboard = () => {
     { name: 'Geriátricos', value: 80 },
   ];
 
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: "Usuários Ativos", icon: <GroupIcon color="primary" />, link: "/users/active" },
+    { id: 2, title: "Novos Cadastros", icon: <AccessTimeIcon color="secondary" />, link: "/users/new" },
+    { id: 3, title: "Relatórios Gerados", icon: <ShowChartIcon sx={{ color: '#673ab7' }} />, link: "/reports" },
+  ]);
+
   const handleTimeFrameChange = (event) => setTimeFrame(event.target.value);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+   // Função para manipular o clique em uma notificação
+   const handleNotificationClick = (id, link) => {
+    setNotifications(notifications.filter((notification) => notification.id !== id));
+    if (link) {
+      // Redireciona para o link, caso necessário
+      window.location.href = link;
+    }
+  };
+
 
   return (
     <Grid2
@@ -113,19 +130,20 @@ const Dashboard = () => {
         }}
       >
 
-        <AppBar position="fixed">
-          <Toolbar>
-            <IconButton edge="start" color="inherit" onClick={toggleSidebar} aria-label="menu">
-              <MenuIcon />
+          
+          <AppBar  position="fixed">
+          <Toolbar sx={{background: '#004c8c', fontSize: 40,}}>
+            <IconButton sx={{fontWeight:'bold'}} edge="start" color="inherit" onClick={toggleSidebar} aria-label="menu">
+              <MenuIcon sx={{ fontSize: 40 }} />
             </IconButton>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight:'bold' }}>
               Dashboard
             </Typography>
           </Toolbar>
         </AppBar>
 
         {/* Sidebar */}
-        <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} user={user} notificationsCount={notificationsCount} />
+        <Sidebar  open={sidebarOpen} toggleSidebar={toggleSidebar} user={user} notificationsCount={notificationsCount} />
 
         {/* Welcome Message */}
         <Box textAlign="center" mb={4}>
@@ -135,7 +153,7 @@ const Dashboard = () => {
           </Typography>
         </Box>
 
-        <Paper elevation={4} sx={{ display: 'inline-flex', padding: 2, alignSelf: 'flex-end', borderRadius: 3, }}>
+        <Paper elevation={4} sx={{ display: 'inline-flex', padding: 2, alignSelf: 'flex-end', borderRadius: 3, background: 'linear-gradient(to bottom, #f5f7fa, #c3cfe2)', }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
 
             <Box>
